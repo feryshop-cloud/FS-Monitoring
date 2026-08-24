@@ -10,9 +10,13 @@ volumes:
     driver: local
   grafana_data:
     driver: local
+  loki_data:
+    driver: local
 
 services:
-  # 1. Prometheus Server (Built from Dockerfile or pulled from GHCR)
+  # ==========================================
+  # 1. METRICS ENGINE: PROMETHEUS
+  # ==========================================
   prometheus:
     image: ghcr.io/feryshop-cloud/fs-prometheus:latest
     build:
@@ -35,7 +39,42 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
-  # 2. Grafana Dashboard (Built from Dockerfile or pulled from GHCR)
+  # ==========================================
+  # 2. LOG ENGINE: GRAFANA LOKI
+  # ==========================================
+  loki:
+    image: grafana/loki:2.9.4
+    container_name: feryshop-loki
+    restart: unless-stopped
+    volumes:
+      - ./loki/loki-config.yml:/etc/loki/local-config.yaml:ro
+      - loki_data:/loki
+    command: -config.file=/etc/loki/local-config.yaml
+    ports:
+      - "127.0.0.1:3100:3100"
+    networks:
+      - feryshop-network
+
+  # ==========================================
+  # 3. LOG SHIPPER: PROMTAIL
+  # ==========================================
+  promtail:
+    image: grafana/promtail:2.9.4
+    container_name: feryshop-promtail
+    restart: unless-stopped
+    volumes:
+      - ./promtail/promtail-config.yml:/etc/promtail/config.yml:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+    command: -config.file=/etc/promtail/config.yml
+    networks:
+      - feryshop-network
+    depends_on:
+      - loki
+
+  # ==========================================
+  # 4. VISUALIZATION & ALERTING: GRAFANA
+  # ==========================================
   grafana:
     image: ghcr.io/feryshop-cloud/fs-grafana:latest
     build:
@@ -58,8 +97,11 @@ services:
       - feryshop-network
     depends_on:
       - prometheus
+      - loki
 
-  # 3. Node Exporter (Host VPS Metrics)
+  # ==========================================
+  # 5. METRIC EXPORTERS
+  # ==========================================
   node-exporter:
     image: prom/node-exporter:v1.7.0
     container_name: feryshop-node-exporter
@@ -76,7 +118,6 @@ services:
     networks:
       - feryshop-network
 
-  # 4. Nginx Prometheus Exporter (Gateway Metrics)
   nginx-exporter:
     image: nginx/nginx-prometheus-exporter:1.1.0
     container_name: feryshop-nginx-exporter
@@ -86,7 +127,6 @@ services:
     networks:
       - feryshop-network
 
-  # 5. Postgres Exporter (Supabase Cloud PostgreSQL Metrics)
   postgres-exporter:
     image: prometheuscommunity/postgres-exporter:v0.15.0
     container_name: feryshop-postgres-exporter

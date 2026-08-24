@@ -1,20 +1,20 @@
-# FS-Monitoring (Prometheus + Grafana + Exporters)
+# FS-Monitoring (Prometheus + Grafana + Loki + Exporters)
 
-Monitoring stack & observability untuk ekosistem **Feryshop** di VPS.
+Full-stack observability (Metrik & Log Agregator) untuk ekosistem **Feryshop** di VPS.
 
 ---
 
-## 1. Komponen Stack & Container Images
+## 1. Komponen Stack
 
-Tersedia dalam bentuk **GitHub Container Registry (GHCR)** image atau dapat di-build langsung via Docker Compose:
-
-| Service               | GitHub Container Image (GHCR)                 | Upstream Base                                   | Port Internal       | Peran                                 |
-| --------------------- | --------------------------------------------- | ----------------------------------------------- | ------------------- | ------------------------------------- |
-| **Prometheus**        | `ghcr.io/feryshop-cloud/fs-prometheus:latest` | `prom/prometheus:v2.51.0`                       | `:9090` (localhost) | TSDB & Scraper metrik                 |
-| **Grafana**           | `ghcr.io/feryshop-cloud/fs-grafana:latest`    | `grafana/grafana:10.4.1`                        | `:3001` (localhost) | Visualisasi dashboard & alerts        |
-| **Node Exporter**     | -                                             | `prom/node-exporter:v1.7.0`                     | `:9100` (internal)  | Metrik Host VPS (CPU, RAM, Disk, Net) |
-| **Nginx Exporter**    | -                                             | `nginx/nginx-prometheus-exporter:1.1.0`         | `:9113` (internal)  | Metrik Trafik Gateway                 |
-| **Postgres Exporter** | -                                             | `prometheuscommunity/postgres-exporter:v0.15.0` | `:9187` (internal)  | Metrik Supabase PostgreSQL            |
+| Service               | Container Name               | Port Internal       | Peran                                                        |
+| --------------------- | ---------------------------- | ------------------- | ------------------------------------------------------------ |
+| **Prometheus**        | `feryshop-prometheus`        | `:9090` (localhost) | TSDB & Scraper metrik dari seluruh target                    |
+| **Grafana**           | `feryshop-grafana`           | `:3001` (localhost) | Visualisasi dashboard, live log search & alerts              |
+| **Loki**              | `feryshop-loki`              | `:3100` (internal)  | Log aggregation engine (menyimpan & mengindeks JSON logs)    |
+| **Promtail**          | `feryshop-promtail`          | `:9080` (internal)  | Log shipper (mengumpulkan log dari seluruh container Docker) |
+| **Node Exporter**     | `feryshop-node-exporter`     | `:9100` (internal)  | Metrik Host VPS (CPU, RAM, Disk, Net)                        |
+| **Nginx Exporter**    | `feryshop-nginx-exporter`    | `:9113` (internal)  | Metrik Trafik Gateway (RPS, status code)                     |
+| **Postgres Exporter** | `feryshop-postgres-exporter` | `:9187` (internal)  | Metrik Supabase PostgreSQL                                   |
 
 ---
 
@@ -25,52 +25,56 @@ Tersedia dalam bentuk **GitHub Container Registry (GHCR)** image atau dapat di-b
 ```bash
 cd FS-Monitoring
 cp .env.example .env
+nano .env
 ```
-
-Edit file `.env`:
-
-- Ganti `GRAFANA_ADMIN_PASSWORD` dengan password admin yang aman.
-- Isi `SUPABASE_DB_URL` dengan connection string PostgreSQL Supabase Anda:
-  ```env
-  SUPABASE_DB_URL=postgresql://postgres:YOUR_PASSWORD@db.YOUR_PROJECT_REF.supabase.co:5432/postgres?sslmode=require
-  ```
 
 ### Langkah 2: Jalankan Container
 
 ```bash
-# Opsi A: Pull dan jalankan image dari GitHub Container Registry
 docker compose up -d
-
-# Opsi B: Build lokal dari Dockerfile
-docker compose up -d --build
 ```
 
 ---
 
-## 3. GitHub Actions CI/CD (GHCR Images)
+## 3. Fitur Live Log Search di Grafana (Loki)
 
-Repository ini dilengkapi dengan GitHub Actions workflow [`.github/workflows/docker-publish.yml`](.github/workflows/docker-publish.yml) yang otomatis mem-build dan mem-push image ke GitHub Packages (GHCR) setiap kali ada commit ke branch `main` atau pembuatan release tag:
+Setelah login ke Grafana (`http://<IP_VPS>:3001`), buka menu **Explore** dan pilih datasource **Loki**.
 
-- `ghcr.io/feryshop-cloud/fs-prometheus:latest`
-- `ghcr.io/feryshop-cloud/fs-grafana:latest`
+### Contoh Query LogQL yang Berguna:
+
+1. **Lihat Log Error Realtime di Seluruh Aplikasi:**
+
+   ```logql
+   {container=~"fs-storefront|fs-admin-dashboard"} | json | level="error"
+   ```
+
+2. **Lacak Jejak Request Berdasarkan `requestId` (Correlation ID):**
+
+   ```logql
+   {container=~"fs-storefront|fs-admin-dashboard|fs-gateway"} | json | requestId="a1b2c3d4-xxxx-xxxx"
+   ```
+
+3. **Cari Request API yang Lambat (> 500ms):**
+
+   ```logql
+   {container="fs-storefront"} | json | durationMs > 500
+   ```
+
+4. **Tampilkan Log Nginx Gateway dengan Status HTTP 5xx:**
+   ```logql
+   {container="fs-gateway"} | json | status >= 500
+   ```
 
 ---
 
-## 4. Mengakses Grafana & Dashboard
+## 4. Rekomendasi Dashboard Grafana Siap Pakai (Import ID)
 
-1. Buka browser: `http://<IP_VPS_ANDA>:3001` (atau via reverse proxy domain, misal `monitor.feryshop.com`).
-2. Login menggunakan kredensial dari `.env`:
-   - **User:** `admin`
-   - **Password:** Sesuai `GRAFANA_ADMIN_PASSWORD` di `.env`
-3. Datasource Prometheus sudah terpasang otomatis (_auto-provisioned_).
+Buka menu **Dashboards → New → Import**, masukkan ID berikut:
 
----
-
-## 5. Rekomendasi Dashboard Siap Pakai (Import ID)
-
-Di Grafana, klik menu **Dashboards** → **New** → **Import**, lalu masukkan ID dashboard komunitas:
-
-1. **Host VPS (Node Exporter Full):** Dashboard ID **`1860`**
-2. **Nginx Reverse Proxy:** Dashboard ID **`12708`**
-3. **PostgreSQL / Supabase:** Dashboard ID **`9628`**
-4. **Node.js Application (Next.js):** Dashboard ID **`11159`**
+| Kebutuhan Monitoring               | ID Dashboard Grafana Resmi                 |
+| ---------------------------------- | ------------------------------------------ |
+| **Host VPS (CPU, RAM, Disk, Net)** | **`1860`** _(Node Exporter Full)_          |
+| **Trafik & Status HTTP Nginx**     | **`12708`** _(Nginx Exporter)_             |
+| **Performa Supabase PostgreSQL**   | **`9628`** _(PostgreSQL Database)_         |
+| **Aplikasi Node.js / Next.js**     | **`11159`** _(NodeJS Application Metrics)_ |
+| **Docker Container Monitoring**    | **`10619`** _(Docker and OS metrics)_      |
