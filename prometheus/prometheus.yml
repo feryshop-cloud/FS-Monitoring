@@ -1,0 +1,46 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  scrape_timeout: 10s
+
+scrape_jobs:
+  # 1. Prometheus Server Sendiri
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["localhost:9090"]
+
+  # 2. Host VPS Metrics (Node Exporter)
+  - job_name: "node-exporter"
+    static_configs:
+      - targets: ["node-exporter:9100"]
+
+  # 3. Nginx Gateway Metrics
+  - job_name: "nginx-exporter"
+    static_configs:
+      - targets: ["nginx-exporter:9113"]
+
+  # 4. Supabase PostgreSQL Metrics
+  - job_name: "supabase-postgres"
+    static_configs:
+      - targets: ["postgres-exporter:9187"]
+
+  # 5. Storefront Next.js App (FS-Public)
+  - job_name: "fs-public"
+    metrics_path: "/api/metrics"
+    scrape_interval: 15s
+    static_configs:
+      - targets: ["fs-public:8080", "host.docker.internal:8080"]
+
+  # 6. Admin ERP Next.js App (game-inventori)
+  - job_name: "game-inventori"
+    metrics_path: "/admin/api/metrics"
+    scrape_interval: 15s
+    static_configs:
+      - targets: ["game-inventori:8080", "host.docker.internal:3000"]
+
+  # 7. WebMail Frontend / IMAP Worker
+  - job_name: "webmail"
+    metrics_path: "/api/metrics"
+    scrape_interval: 15s
+    static_configs:
+      - targets: ["webmail:3000", "host.docker.internal:3002"]

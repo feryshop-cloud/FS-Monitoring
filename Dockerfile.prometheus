@@ -1,0 +1,6 @@
+FROM prom/prometheus:v2.51.0
+
+# Pre-bundle konfigurasi Prometheus ke dalam image
+COPY prometheus/prometheus.yml /etc/prometheus/prometheus.yml
+
+EXPOSE 9090

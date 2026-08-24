@@ -1,0 +1,98 @@
+version: "3.8"
+
+networks:
+  feryshop-network:
+    name: feryshop-network
+    driver: bridge
+
+volumes:
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+
+services:
+  # 1. Prometheus Server (Built from Dockerfile or pulled from GHCR)
+  prometheus:
+    image: ghcr.io/feryshop-cloud/fs-prometheus:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.prometheus
+    container_name: feryshop-prometheus
+    restart: unless-stopped
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--storage.tsdb.retention.time=15d"
+      - "--web.enable-lifecycle"
+    ports:
+      - "127.0.0.1:9090:9090"
+    networks:
+      - feryshop-network
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  # 2. Grafana Dashboard (Built from Dockerfile or pulled from GHCR)
+  grafana:
+    image: ghcr.io/feryshop-cloud/fs-grafana:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.grafana
+    container_name: feryshop-grafana
+    restart: unless-stopped
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-feryshop_secure_password_2026}
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_SERVER_ROOT_URL=${GRAFANA_ROOT_URL:-http://localhost:3001}
+      - GF_INSTALL_PLUGINS=
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - grafana_data:/var/lib/grafana
+    ports:
+      - "127.0.0.1:3001:3000"
+    networks:
+      - feryshop-network
+    depends_on:
+      - prometheus
+
+  # 3. Node Exporter (Host VPS Metrics)
+  node-exporter:
+    image: prom/node-exporter:v1.7.0
+    container_name: feryshop-node-exporter
+    restart: unless-stopped
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - "--path.procfs=/host/proc"
+      - "--path.rootfs=/rootfs"
+      - "--path.sysfs=/host/sys"
+      - "--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)"
+    networks:
+      - feryshop-network
+
+  # 4. Nginx Prometheus Exporter (Gateway Metrics)
+  nginx-exporter:
+    image: nginx/nginx-prometheus-exporter:1.1.0
+    container_name: feryshop-nginx-exporter
+    restart: unless-stopped
+    environment:
+      - SCRAPE_URI=${NGINX_STATUS_URL:-http://fs-nginxgateway:8080/stub_status}
+    networks:
+      - feryshop-network
+
+  # 5. Postgres Exporter (Supabase Cloud PostgreSQL Metrics)
+  postgres-exporter:
+    image: prometheuscommunity/postgres-exporter:v0.15.0
+    container_name: feryshop-postgres-exporter
+    restart: unless-stopped
+    environment:
+      - DATA_SOURCE_NAME=${SUPABASE_DB_URL}
+      - PG_EXPORTER_DISABLE_SETTINGS_METRICS=false
+    networks:
+      - feryshop-network

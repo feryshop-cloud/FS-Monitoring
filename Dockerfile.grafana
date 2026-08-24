@@ -1,0 +1,6 @@
+FROM grafana/grafana:10.4.1
+
+# Pre-bundle provisioning datasources & dashboards ke dalam image
+COPY grafana/provisioning /etc/grafana/provisioning
+
+EXPOSE 3000
