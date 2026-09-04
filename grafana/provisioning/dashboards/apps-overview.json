@@ -282,18 +282,45 @@
         {
           "datasource": { "type": "loki", "uid": "loki" },
           "editorMode": "code",
-          "expr": "{container=~\"fs-storefront|fs-admin-dashboard|fs-webmail|fs-digiflazz-service\"} | json | level=~\"error|warn|500\"",
+          "expr": "{container=~\"$container\"} | json",
           "queryType": "range",
           "refId": "A"
         }
       ],
-      "title": "Aggregated Application Warnings & Errors",
+      "title": "Live Application Container Logs",
       "type": "logs"
     }
   ],
   "refresh": "15s",
   "schemaVersion": 39,
   "tags": ["feryshop", "apps", "nodejs", "nextjs"],
+  "templating": {
+    "list": [
+      {
+        "current": {
+          "selected": true,
+          "text": "All Containers",
+          "value": ".*"
+        },
+        "hide": 0,
+        "includeAll": true,
+        "allValue": ".*",
+        "label": "Container",
+        "multi": false,
+        "name": "container",
+        "options": [
+          { "selected": true, "text": "All Containers", "value": ".*" },
+          { "selected": false, "text": "fs-storefront (Storefront)", "value": "fs-storefront|fs-public.*" },
+          { "selected": false, "text": "fs-admin-dashboard (Admin ERP)", "value": "fs-admin-dashboard|game-inventori.*" },
+          { "selected": false, "text": "fs-webmail (WebMail)", "value": "fs-webmail|webmail.*" },
+          { "selected": false, "text": "fs-digiflazz-service (Digiflazz)", "value": "fs-digiflazz-service" },
+          { "selected": false, "text": "fs-gateway (Nginx)", "value": "fs-gateway|feryshop-gateway|fs-nginxgateway.*" }
+        ],
+        "query": "fs-storefront, fs-admin-dashboard, fs-webmail, fs-digiflazz-service, fs-gateway",
+        "type": "custom"
+      }
+    ]
+  },
   "time": {
     "from": "now-6h",
     "to": "now"
