@@ -313,7 +313,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{job=\"game-inventori\"}[5m])) by (le))",
+          "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{job=\"game-inventori\"}[5m])) by (le)) or vector(0)",
           "instant": false,
           "range": true,
           "refId": "A"
