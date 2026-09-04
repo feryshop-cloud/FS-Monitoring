@@ -41,11 +41,13 @@ services:
   # 2. LOG ENGINE: GRAFANA LOKI
   # ==========================================
   loki:
-    image: grafana/loki:2.9.4
+    image: ghcr.io/feryshop-cloud/fs-loki:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.loki
     container_name: feryshop-loki
     restart: unless-stopped
     volumes:
-      - ./loki/loki-config.yml:/etc/loki/local-config.yaml:ro
       - loki_data:/loki
     command: -config.file=/etc/loki/local-config.yaml
     ports:
@@ -57,11 +59,13 @@ services:
   # 3. LOG SHIPPER: PROMTAIL
   # ==========================================
   promtail:
-    image: grafana/promtail:2.9.4
+    image: ghcr.io/feryshop-cloud/fs-promtail:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.promtail
     container_name: feryshop-promtail
     restart: unless-stopped
     volumes:
-      - ./promtail/promtail-config.yml:/etc/promtail/config.yml:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
     command: -config.file=/etc/promtail/config.yml

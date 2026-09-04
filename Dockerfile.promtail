@@ -1,0 +1,6 @@
+FROM grafana/promtail:2.9.4
+
+# Pre-bundle konfigurasi Promtail ke dalam image
+COPY promtail/promtail-config.yml /etc/promtail/config.yml
+
+EXPOSE 9080

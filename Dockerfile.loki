@@ -1,0 +1,6 @@
+FROM grafana/loki:2.9.4
+
+# Pre-bundle konfigurasi Loki ke dalam image
+COPY loki/loki-config.yml /etc/loki/local-config.yaml
+
+EXPOSE 3100 9096
