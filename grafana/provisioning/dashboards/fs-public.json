@@ -45,7 +45,7 @@
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "editorMode": "code",
-          "expr": "up{job=\"fs-public\"} or vector(0)",
+          "expr": "up{job=\"fs-public\"} or on() vector(0)",
           "instant": true,
           "range": false,
           "refId": "A"
@@ -77,7 +77,7 @@
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "editorMode": "code",
-          "expr": "sum(rate(http_requests_total{job=\"fs-public\"}[2m])) or sum(rate(next_http_requests_total{job=\"fs-public\"}[2m])) or vector(0)",
+          "expr": "sum(rate(http_requests_total{job=\"fs-public\"}[2m])) or sum(rate(next_http_requests_total{job=\"fs-public\"}[2m])) or on() vector(0)",
           "instant": false,
           "range": true,
           "refId": "A"
@@ -149,7 +149,7 @@
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "editorMode": "code",
-          "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{job=\"fs-public\"}[5m])) by (le)) or vector(0)",
+          "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{job=\"fs-public\"}[5m])) by (le)) or on() vector(0)",
           "instant": false,
           "range": true,
           "refId": "A"

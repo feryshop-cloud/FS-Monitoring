@@ -51,7 +51,7 @@
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "editorMode": "code",
-          "expr": "up{job=\"fs-public\"} or vector(0)",
+          "expr": "up{job=\"fs-public\"} or on() vector(0)",
           "instant": true,
           "range": false,
           "refId": "A"
@@ -95,7 +95,7 @@
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "editorMode": "code",
-          "expr": "up{job=\"game-inventori\"} or vector(0)",
+          "expr": "up{job=\"game-inventori\"} or on() vector(0)",
           "instant": true,
           "range": false,
           "refId": "A"
@@ -139,7 +139,7 @@
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "editorMode": "code",
-          "expr": "up{job=\"webmail\"} or vector(0)",
+          "expr": "up{job=\"webmail\"} or on() vector(0)",
           "instant": true,
           "range": false,
           "refId": "A"
@@ -183,7 +183,7 @@
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "editorMode": "code",
-          "expr": "up{job=\"fs-digiflazz-service\"} or vector(0)",
+          "expr": "up{job=\"fs-digiflazz-service\"} or on() vector(0)",
           "instant": true,
           "range": false,
           "refId": "A"
