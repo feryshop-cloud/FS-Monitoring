@@ -12,43 +12,43 @@ scrape_jobs:
   # 2. Host VPS Metrics (Node Exporter)
   - job_name: "node-exporter"
     static_configs:
-      - targets: ["node-exporter:9100"]
+      - targets: ["node-exporter:9100", "fs-node-exporter:9100", "host.docker.internal:9100"]
 
   # 3. Nginx Gateway Metrics
   - job_name: "nginx-exporter"
     static_configs:
-      - targets: ["nginx-exporter:9113"]
+      - targets: ["nginx-exporter:9113", "fs-nginx-exporter:9113", "host.docker.internal:9113"]
 
   # 4. Supabase PostgreSQL Metrics
   - job_name: "supabase-postgres"
     static_configs:
-      - targets: ["postgres-exporter:9187"]
+      - targets: ["postgres-exporter:9187", "fs-postgres-exporter:9187", "host.docker.internal:9187"]
 
   # 5. Storefront Next.js App (FS-Public)
   - job_name: "fs-public"
     metrics_path: "/api/metrics"
     scrape_interval: 15s
     static_configs:
-      - targets: ["fs-public:8080", "host.docker.internal:8080"]
+      - targets: ["fs-storefront:8080", "storefront:8080", "fs-public:8080", "host.docker.internal:8080"]
 
   # 6. Admin ERP Next.js App (game-inventori)
   - job_name: "game-inventori"
     metrics_path: "/admin/api/metrics"
     scrape_interval: 15s
     static_configs:
-      - targets: ["game-inventori:8080", "host.docker.internal:3000"]
+      - targets: ["fs-admin-dashboard:8080", "admin-dashboard:8080", "game-inventori:8080", "host.docker.internal:3000"]
 
   # 7. WebMail Frontend / IMAP Worker
   - job_name: "webmail"
     metrics_path: "/api/metrics"
     scrape_interval: 15s
     static_configs:
-      - targets: ["webmail:3000", "host.docker.internal:3002"]
+      - targets: ["fs-webmail:3000", "webmail:3000", "host.docker.internal:3002"]
 
   # 8. Digiflazz Microservice (FS-digiflazz-service)
   - job_name: "fs-digiflazz-service"
     metrics_path: "/metrics"
     scrape_interval: 15s
     static_configs:
-      - targets: ["fs-digiflazz-service:3002", "host.docker.internal:3002"]
+      - targets: ["fs-digiflazz-service:3002", "digiflazz-service:3002", "host.docker.internal:3002"]
 
