@@ -300,16 +300,16 @@
         "current": {
           "selected": true,
           "text": "All Containers",
-          "value": ".*"
+          "value": ".+"
         },
         "hide": 0,
         "includeAll": true,
-        "allValue": ".*",
+        "allValue": ".+",
         "label": "Container",
         "multi": false,
         "name": "container",
         "options": [
-          { "selected": true, "text": "All Containers", "value": ".*" },
+          { "selected": true, "text": "All Containers", "value": ".+" },
           { "selected": false, "text": "fs-storefront (Storefront)", "value": "fs-storefront|fs-public.*" },
           { "selected": false, "text": "fs-admin-dashboard (Admin ERP)", "value": "fs-admin-dashboard|game-inventori.*" },
           { "selected": false, "text": "fs-webmail (WebMail)", "value": "fs-webmail|webmail.*" },
