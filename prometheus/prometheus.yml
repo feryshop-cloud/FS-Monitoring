@@ -44,3 +44,11 @@ scrape_jobs:
     scrape_interval: 15s
     static_configs:
       - targets: ["webmail:3000", "host.docker.internal:3002"]
+
+  # 8. Digiflazz Microservice (FS-digiflazz-service)
+  - job_name: "fs-digiflazz-service"
+    metrics_path: "/metrics"
+    scrape_interval: 15s
+    static_configs:
+      - targets: ["fs-digiflazz-service:3002", "host.docker.internal:3002"]
+
