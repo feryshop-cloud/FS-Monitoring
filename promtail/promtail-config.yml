@@ -34,7 +34,15 @@ scrape_configs:
             method: method
             path: path
             status: status
-            durationMs: durationMs
+            pino_status: res.statusCode
+      # 3. Normalize status from pino-http if present
+      - template:
+          source: status
+          template: '{{ if .pino_status }}{{ .pino_status }}{{ else }}{{ .status }}{{ end }}'
+      # 4. Normalize numeric Pino levels to strings
+      - template:
+          source: level
+          template: '{{ if eq .level "10" }}trace{{ else if eq .level "20" }}debug{{ else if eq .level "30" }}info{{ else if eq .level "40" }}warn{{ else if eq .level "50" }}error{{ else if eq .level "60" }}fatal{{ else }}{{ .level }}{{ end }}'
       - labels:
           level:
           service:
