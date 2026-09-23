@@ -33,7 +33,7 @@ scrape_configs:
 
   # 6. Admin ERP Next.js App (game-inventori)
   - job_name: "game-inventori"
-    metrics_path: "/admin/api/metrics"
+    metrics_path: "/adminfery/api/metrics"
     scrape_interval: 15s
     static_configs:
       - targets: ["admin-dashboard:8080"]
