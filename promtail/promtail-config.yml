@@ -60,14 +60,10 @@ scrape_configs:
       - template:
           source: message
           template: '{{ if .msg }}{{ .msg }}{{ else }}{{ .message }}{{ end }}'
-      # 6. Bebas noise: drop log administratif rutin tanpa nilai forensik
-      # (contoh buruk: GET /metrics 200). Incident 5xx/4xx tetap lolos.
-      - match:
-          selector: '{container=~".+"} | json | path="/metrics" status="200"'
-          action: drop
-          drop_counter_reason: forensic_noise_metrics
+      # 6. Bebas noise ditangani di sumber (logger filter /health//metrics,
+      # level debug utk probe). Tanpa match/drop stage: selector match hanya
+      # menerima stream selector LogQL murni, pipeline di selector invalid.
       - labels:
           level:
           service:
           status:
-          route:
