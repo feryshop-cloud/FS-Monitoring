@@ -24,17 +24,30 @@ scrape_configs:
       # 1. Unpack Docker log wrapper {"log": "...", "stream": "...", "time": "..."}
       - docker: {}
       # 2. Parse Structured JSON Logs dari Next.js Pino & Nginx
+      # Kontrak forensik: level, time, service, environment, msg, requestId,
+      # route, order_id/orderId, payment_id, err{type,message,stack}, dampak
+      # (amount, rows_affected, status_before/after, balance_before/after, digiflazz_rc).
       - json:
           expressions:
             timestamp: timestamp
+            time: time
             level: level
             message: message
+            msg: msg
             service: service
+            environment: environment
             requestId: requestId
+            route: route
             method: method
             path: path
             status: status
             pino_status: res.statusCode
+            order_id: order_id
+            orderId: orderId
+            payment_id: payment_id
+            user: user
+            amount: amount
+            err_type: err.type
       # 3. Normalize status from pino-http if present
       - template:
           source: status
@@ -43,7 +56,18 @@ scrape_configs:
       - template:
           source: level
           template: '{{ if eq .level "10" }}trace{{ else if eq .level "20" }}debug{{ else if eq .level "30" }}info{{ else if eq .level "40" }}warn{{ else if eq .level "50" }}error{{ else if eq .level "60" }}fatal{{ else }}{{ .level }}{{ end }}'
+      # 5. Normalize message: pino pakai `msg`, app lama pakai `message`
+      - template:
+          source: message
+          template: '{{ if .msg }}{{ .msg }}{{ else }}{{ .message }}{{ end }}'
+      # 6. Bebas noise: drop log administratif rutin tanpa nilai forensik
+      # (contoh buruk: GET /metrics 200). Incident 5xx/4xx tetap lolos.
+      - match:
+          selector: '{container=~".+"} | json | path="/metrics" status="200"'
+          action: drop
+          drop_counter_reason: forensic_noise_metrics
       - labels:
           level:
           service:
           status:
+          route:
